@@ -1,22 +1,17 @@
-import React, { useEffect, useState } from "react";
-import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 function App() {
-  const [mensagem, setMensagem] = useState("Carregando...");
-
-  // Exemplo de conexão com o backend Python
-  useEffect(() => {
-    fetch("http://localhost:5000/api/mensagem") // substitua pela rota do seu backend
-      .then((res) => res.json())
-      .then((data) => setMensagem(data.mensagem))
-      .catch((err) => setMensagem("Erro ao conectar com o servidor."));
-  }, []);
-
   return (
-    <div className="container">
-      <h1>Frontend React + Backend Python 🐍⚛️</h1>
-      <p>{mensagem}</p>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/sobre" element={<About />} />
+        <Route path="/contato" element={<Contact />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
