@@ -1,5 +1,11 @@
 export function LoginPage() {
   return (
-    <div>Login Page</div>
+    <main className="Fundo">
+        <div className="imagem">
+            <img src="" alt="" />
+        </div>
+
+    </main>
+
   );
 }
