@@ -8,26 +8,23 @@ export function Sidebar() {
   ];
 
   return (
-    <div className="fixed top-0 left-0 h-screen w-64 bg-[#081C33] z-40">
+    <div className="fixed top-0 left-0 h-screen w-64 bg-[#081C33]">
       {/* Logo */}
       <div className="flex justify-center items-center p-4">
         <img
           src={Logo}
           alt="Logo"
-          className="w-28 md:w-32 h-auto"
         />
       </div>
-
       {/* Menu */}
-      <ul className="mt-4 space-y-2">
+      <ul className="mt-4 list-none">
         {sidebarItems.map(({ name, href, icon, label }) => (
-          <li key={name}>
-            <a
-              href={href}
-              className="flex items-center p-2 pl-6 text-white/90"
-            >
-              {icon}
-              <span className="ml-2">{label}</span>
+          <li key={name} className="mb-4 px-6"
+          >
+            <a href={href}
+              className="flex items-center text-[#FAF9F4] no-underline"
+            >{icon}
+              <span className="ml-8">{label}</span>
             </a>
           </li>
         ))}
