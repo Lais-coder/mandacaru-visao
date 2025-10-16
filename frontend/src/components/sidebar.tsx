@@ -3,8 +3,8 @@ import { House, Clock } from "lucide-react";
 
 export function Sidebar() {
   const sidebarItems = [
-    { name: "Inicio", href: "/inicio", icon: <House size={20} />, label: "Início" },
-    { name: "Historico", href: "/historico", icon: <Clock size={20} />, label: "Histórico" },
+    { name: "Inicio", href: "/home", icon: <House size={20} />, label: "Início" },
+    { name: "Histórico", href: "/history", icon: <Clock size={20} />, label: "Histórico" },
   ];
 
   return (
@@ -17,10 +17,10 @@ export function Sidebar() {
       </div>
       <ul className="mt-4 list-none">
         {sidebarItems.map(({ name, href, icon, label }) => (
-          <li key={name} className="mb-4 px-6"
+          <li key={name} className="mb-4 px-6 hover:bg-[#081C33]/30"
           >
             <a href={href}
-              className="flex items-center text-[#FAF9F4] no-underline"
+              className="flex items-center text-[#FAF9F4] no-underline bg-transparent hover:text-white rounded-lg p-3 transition opacity-30"
             >{icon}
               <span className="ml-8">{label}</span>
             </a>
