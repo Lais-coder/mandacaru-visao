@@ -1,7 +1,7 @@
 import { Sidebar } from "../components/sidebar";
 import { Header } from "../components/header";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { ArrowLeft } from "lucide-react";
 import Error from "../assets/error.png";
 
@@ -27,6 +27,7 @@ export function ConfigureBaia() {
   const [currentPolygon, setCurrentPolygon] = useState<Point[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
+  const [selectedBaiaId, setSelectedBaiaId] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -57,30 +58,40 @@ export function ConfigureBaia() {
 
   // Clique sobre o vídeo (canvas sobreposto)
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !videoReady) return;
-
     const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
+    if (!canvas || !videoReady) return;
 
-    // Converta coordenadas do evento (CSS pixels) para pixels do canvas
+    const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
     const x = Math.round((e.clientX - rect.left) * scaleX);
     const y = Math.round((e.clientY - rect.top) * scaleY);
 
-    setCurrentPolygon((prev) => [...prev, { x, y }]);
+    if (isDrawing) {
+      setCurrentPolygon((prev) => [...prev, { x, y }]);
+      return;
+    }
+
+    // se não estiver desenhando, checar se clicou dentro de alguma baia
+    let foundId: string | null = null;
+    for (const b of baias) {
+      if (pointInPolygon({ x, y }, b.polygon)) {
+        foundId = b.id;
+        break;
+      }
+    }
+    setSelectedBaiaId(foundId);
   };
 
   // redesenha quando muda algo
   useEffect(() => {
-  console.log("🔍 fileUrl recebido:", fileUrl);
-  console.log("📁 fileInfo recebido:", fileInfo);
-}, [fileUrl, fileInfo]);
+    console.log("🔍 fileUrl recebido:", fileUrl);
+    console.log("📁 fileInfo recebido:", fileInfo);
+  }, [fileUrl, fileInfo]);
 
 
-  function draw() {
+  const draw = useCallback(() => {
     const ctx = ctxRef.current;
     const canvas = canvasRef.current;
     if (!ctx || !canvas) return;
@@ -90,26 +101,59 @@ export function ConfigureBaia() {
     // desenha baias salvas
     baias.forEach((b, i) => {
       const color = colors[i % colors.length];
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color + "33";
+      // destaque se selecionada
+      if (b.id === selectedBaiaId) {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color + "55";
+      } else {
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color + "33";
+      }
+
       drawPolygon(ctx, b.polygon);
 
-      // desenha rótulo no centro
-      const cx =
-        b.polygon.reduce((sum, p) => sum + p.x, 0) / b.polygon.length;
-      const cy =
-        b.polygon.reduce((sum, p) => sum + p.y, 0) / b.polygon.length;
+      // desenha rótulo no centro com fundo para legibilidade
+      const cx = b.polygon.reduce((sum, p) => sum + p.x, 0) / b.polygon.length;
+      const cy = b.polygon.reduce((sum, p) => sum + p.y, 0) / b.polygon.length;
 
-      ctx.fillStyle = "white";
+      const label = b.id;
       ctx.font = "16px Arial";
+      const textWidth = ctx.measureText(label).width;
+      const padding = 6;
+      const rectX = cx - textWidth / 2 - padding / 2;
+      const rectY = cy - 12 - padding / 2;
+
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(rectX, rectY, textWidth + padding, 20);
+      ctx.fillStyle = "white";
       ctx.textAlign = "center";
-      ctx.fillText(b.id, cx, cy);
+      ctx.fillText(label, cx, cy);
     });
 
-    // baia atual
+    // baia atual em desenho
+    ctx.lineWidth = 1.5;
     ctx.strokeStyle = "#555";
     ctx.fillStyle = "#5555";
     drawPolygon(ctx, currentPolygon);
+  }, [baias, currentPolygon, selectedBaiaId]);
+
+  // algoritmo básico ray-casting para detectar ponto dentro de polígono
+  function pointInPolygon(point: Point, polygon: Point[]) {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const xi = polygon[i].x,
+        yi = polygon[i].y;
+      const xj = polygon[j].x,
+        yj = polygon[j].y;
+
+      const intersect =
+        yi > point.y !== yj > point.y &&
+        point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi;
+      if (intersect) inside = !inside;
+    }
+    return inside;
   }
 
   function drawPolygon(ctx: CanvasRenderingContext2D, poly: Point[]) {
@@ -174,6 +218,12 @@ export function ConfigureBaia() {
   useEffect(() => {
     handleLoad();
   }, []);
+
+  // redesenha quando as baias, polígono atual, seleção ou estado do vídeo mudarem
+  useEffect(() => {
+    if (!videoReady) return;
+    draw();
+  }, [draw, videoReady]);
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#EAF9FB] via-[#E6F4FB] to-[#1dd7c7c3]">
