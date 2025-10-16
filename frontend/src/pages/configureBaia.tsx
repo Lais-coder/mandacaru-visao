@@ -1,12 +1,22 @@
 import { Sidebar } from "../components/sidebar";
 import { Header } from "../components/header";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState, useCallback } from "react";   
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import Error from "../assets/error.png";
 
 type Point = { x: number; y: number };
 type Baia = { id: string; polygon: Point[] };
+
+const colors = [
+  "#FF6B6B",
+  "#6BCB77",
+  "#4D96FF",
+  "#FFD93D",
+  "#C77DFF",
+  "#3FC1C9",
+  "#FF9F1C",
+];
 
 export function ConfigureBaia() {
   const navigate = useNavigate();
@@ -70,7 +80,7 @@ export function ConfigureBaia() {
 }, [fileUrl, fileInfo]);
 
 
-  const draw = useCallback(() => {
+  function draw() {
     const ctx = ctxRef.current;
     const canvas = canvasRef.current;
     if (!ctx || !canvas) return;
@@ -100,7 +110,7 @@ export function ConfigureBaia() {
     ctx.strokeStyle = "#555";
     ctx.fillStyle = "#5555";
     drawPolygon(ctx, currentPolygon);
-  }, [baias, currentPolygon]);
+  }
 
   function drawPolygon(ctx: CanvasRenderingContext2D, poly: Point[]) {
     if (poly.length === 0) return;
@@ -165,12 +175,6 @@ export function ConfigureBaia() {
     handleLoad();
   }, []);
 
-  // redesenha sempre que as baias, polígono atual ou estado do vídeo mudarem
-  useEffect(() => {
-    if (!videoReady) return;
-    draw();
-  }, [draw, videoReady]);
-
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#EAF9FB] via-[#E6F4FB] to-[#1dd7c7c3]">
       <Sidebar />
@@ -200,7 +204,7 @@ export function ConfigureBaia() {
               </div>
 
               <div className="bg-white shadow-sm border rounded-lg p-3 w-40 text-center">
-                <p className="text-lg">{fileInfo?.size ?? "—"} MB</p>
+                <p className="text-lg">{fileInfo?.size} MB</p>
                 <p className="text-sm text-gray-500">Tamanho</p>
               </div>
 
@@ -285,7 +289,7 @@ export function ConfigureBaia() {
               <ul className="w-full">
                 {baias.map((baia, index) => (
                   <li
-                    key={baia.id}
+                    key={index}
                     className="flex justify-between items-center border-b py-2 text-sm"
                   >
                     <span>{baia.id}</span>
