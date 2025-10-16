@@ -20,7 +20,7 @@ export function Sidebar() {
           <li key={name} className="mb-4 px-6 bg-[#081C33] hover:bg-[#0b284a] py-3"
           >
             <a href={href}
-              className="flex items-center text-[#FAF9F4] no-underline bg-transparent hover:text-white rounded-lg p-3 transition opacity-30"
+              className="flex items-center text-[#FAF9F4] no-underline bg-transparent hover:text-white"
             >{icon}
               <span className="ml-8">{label}</span>
             </a>
