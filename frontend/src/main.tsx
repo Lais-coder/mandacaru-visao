@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import { Login } from './pages/login'
 import { Home } from './pages/home'
+import { ConfigureBaia } from './pages/configureBaia'
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,10 @@ const router = createBrowserRouter([
   {
     path: '/home',
     element: <Home />,
+  },
+  {
+    path: '/configure-baia',
+    element: <ConfigureBaia />,
   },
 ])
 
