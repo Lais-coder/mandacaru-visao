@@ -8,15 +8,13 @@ export function Sidebar() {
   ];
 
   return (
-    <div className="fixed top-0 left-0 h-screen w-64 bg-[#081C33]">
-      {/* Logo */}
+    <div className=" top-0 left-0 h-screen w-64 bg-[#081C33]">
       <div className="flex justify-center items-center p-4">
         <img
           src={Logo}
           alt="Logo"
         />
       </div>
-      {/* Menu */}
       <ul className="mt-4 list-none">
         {sidebarItems.map(({ name, href, icon, label }) => (
           <li key={name} className="mb-4 px-6"
