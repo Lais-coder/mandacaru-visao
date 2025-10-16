@@ -56,7 +56,11 @@ export function Login() {
             </div>
             <button
               type="submit"
+<<<<<<< HEAD
               className="w-full py-2 rounded bg-[#081C33] border-transparent text-white hover:bg-[#081C33]/30 transition"
+=======
+              className="w-[100%] py-2 rounded bg-[#081C33] border-transparent text-[#ffff] hover:bg-[#081C33]/30 transition mt-[20px] pt-[4px] pb-[4px]"
+>>>>>>> 6739d49dc89c6219f04141d7401cbc8ee04482a1
             >
               Entrar
             </button>
