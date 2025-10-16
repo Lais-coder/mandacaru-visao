@@ -17,7 +17,7 @@ export function Sidebar() {
       </div>
       <ul className="mt-4 list-none">
         {sidebarItems.map(({ name, href, icon, label }) => (
-          <li key={name} className="mb-4 px-6 hover:bg-[#081C33]/30"
+          <li key={name} className="mb-4 px-6 bg-[#081C33] hover:bg-[#0b284a] py-3"
           >
             <a href={href}
               className="flex items-center text-[#FAF9F4] no-underline bg-transparent hover:text-white rounded-lg p-3 transition opacity-30"
