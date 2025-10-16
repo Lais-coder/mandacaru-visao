@@ -1,8 +1,9 @@
 import { Sidebar } from "../components/sidebar";
 import { Header } from "../components/header";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";   
 import { ArrowLeft } from "lucide-react";
+import Error from "../assets/error.png";
 
 type Point = { x: number; y: number };
 type Baia = { id: string; polygon: Point[] };
@@ -21,8 +22,6 @@ export function ConfigureBaia() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  const colors = ["#FF6B6B", "#4D96FF", "#6BCB77", "#FFD93D", "#C77DFF"];
-
   useEffect(() => {
     if (!fileUrl) navigate("/");
   }, [fileUrl, navigate]);
@@ -32,8 +31,14 @@ export function ConfigureBaia() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (video && canvas) {
-      canvas.width = video.clientWidth;
-      canvas.height = video.clientHeight;
+      // Use a resolução natural do vídeo para o buffer do canvas
+      canvas.width = video.videoWidth || video.clientWidth;
+      canvas.height = video.videoHeight || video.clientHeight;
+
+      // Mantenha o tamanho visual igual ao vídeo exibido (CSS pixels)
+      canvas.style.width = `${video.clientWidth}px`;
+      canvas.style.height = `${video.clientHeight}px`;
+
       ctxRef.current = canvas.getContext("2d");
       setVideoReady(true);
       draw();
@@ -48,46 +53,68 @@ export function ConfigureBaia() {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
 
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
+    // Converta coordenadas do evento (CSS pixels) para pixels do canvas
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = Math.round((e.clientX - rect.left) * scaleX);
+    const y = Math.round((e.clientY - rect.top) * scaleY);
 
     setCurrentPolygon((prev) => [...prev, { x, y }]);
   };
 
   // redesenha quando muda algo
   useEffect(() => {
-    draw();
-  }, [baias, currentPolygon]);
+  console.log("🔍 fileUrl recebido:", fileUrl);
+  console.log("📁 fileInfo recebido:", fileInfo);
+}, [fileUrl, fileInfo]);
 
-  function draw() {
+
+  const draw = useCallback(() => {
     const ctx = ctxRef.current;
     const canvas = canvasRef.current;
     if (!ctx || !canvas) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // baias existentes
+    // desenha baias salvas
     baias.forEach((b, i) => {
       const color = colors[i % colors.length];
       ctx.strokeStyle = color;
       ctx.fillStyle = color + "33";
       drawPolygon(ctx, b.polygon);
+
+      // desenha rótulo no centro
+      const cx =
+        b.polygon.reduce((sum, p) => sum + p.x, 0) / b.polygon.length;
+      const cy =
+        b.polygon.reduce((sum, p) => sum + p.y, 0) / b.polygon.length;
+
+      ctx.fillStyle = "white";
+      ctx.font = "16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(b.id, cx, cy);
     });
 
     // baia atual
     ctx.strokeStyle = "#555";
     ctx.fillStyle = "#5555";
     drawPolygon(ctx, currentPolygon);
-  }
+  }, [baias, currentPolygon]);
 
   function drawPolygon(ctx: CanvasRenderingContext2D, poly: Point[]) {
     if (poly.length === 0) return;
     ctx.beginPath();
     ctx.moveTo(poly[0].x, poly[0].y);
     for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i].x, poly[i].y);
-    ctx.closePath();
-    ctx.stroke();
-    ctx.fill();
+    // Só fecha/preenche se houver ao menos 3 pontos
+    if (poly.length >= 3) {
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fill();
+    } else {
+      ctx.stroke();
+    }
 
     // desenha pontinhos
     poly.forEach((p) => {
@@ -118,9 +145,31 @@ export function ConfigureBaia() {
   }
 
   function handleSave() {
-    console.log("Baias salvas:", baias);
+    localStorage.setItem("baiasConfig", JSON.stringify(baias));
     alert("Baias salvas com sucesso!");
   }
+
+  function handleLoad() {
+    const saved = localStorage.getItem("baiasConfig");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as Baia[];
+        setBaias(parsed);
+      } catch (err) {
+        console.error("Falha ao parsear baiasConfig do localStorage", err);
+      }
+    }
+  }
+
+  useEffect(() => {
+    handleLoad();
+  }, []);
+
+  // redesenha sempre que as baias, polígono atual ou estado do vídeo mudarem
+  useEffect(() => {
+    if (!videoReady) return;
+    draw();
+  }, [draw, videoReady]);
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-[#EAF9FB] via-[#E6F4FB] to-[#1dd7c7c3]">
@@ -151,7 +200,7 @@ export function ConfigureBaia() {
               </div>
 
               <div className="bg-white shadow-sm border rounded-lg p-3 w-40 text-center">
-                <p className="text-lg">{fileInfo?.size} MB</p>
+                <p className="text-lg">{fileInfo?.size ?? "—"} MB</p>
                 <p className="text-sm text-gray-500">Tamanho</p>
               </div>
 
@@ -212,25 +261,31 @@ export function ConfigureBaia() {
                   </button>
                 </>
               )}
+              <button
+                onClick={handleSave}
+                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
+              >
+                Salvar Configuração
+              </button>
             </div>
           </div>
 
           {/* Painel lateral */}
-          <div className="bg-white w-[28%] rounded-xl p-5 shadow-md flex flex-col items-center">
+          <div className="bg-white w-[28%] rounded-xl p-5 shadow-md flex flex-col ">
             <h3 className="text-lg font-semibold text-[#081C33] mb-3">
               Baias salvas:
             </h3>
 
             {baias.length === 0 ? (
-              <div className="flex flex-col items-center text-gray-500 mt-10">
-                <span className="text-6xl mb-3">🔍</span>
+              <div className="flex flex-col items-center text-gray-500 mt-20">
+                <img src={Error} alt="Error" className="w-16 mb-2" />
                 <p>Nenhuma baia adicionada</p>
               </div>
             ) : (
               <ul className="w-full">
                 {baias.map((baia, index) => (
                   <li
-                    key={index}
+                    key={baia.id}
                     className="flex justify-between items-center border-b py-2 text-sm"
                   >
                     <span>{baia.id}</span>
