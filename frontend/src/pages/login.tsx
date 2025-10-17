@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import Logo from '../assets/Logo-MandacaruBranco.png';
+import { useNavigate } from 'react-router-dom';
 
 export function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
@@ -57,6 +59,7 @@ export function Login() {
             <button
               type="submit"
               className="w-full py-2 rounded bg-[#081C33] border-transparent text-white hover:bg-[#081C33]/30 transition"
+              onClick={() => navigate('/home')}
             >
               Entrar
             </button>
