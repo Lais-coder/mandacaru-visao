@@ -66,6 +66,7 @@ export function History() {
                                     aria-label="Filtro"
                                     onClick={() => setShowFilter(prev => !prev)}
                                     className="flex items-center gap-2 bg-[#081C33] text-white rounded-lg px-4 py-2 shadow hover:bg-[#0b284a] transition"
+                                    translate="no"
                                 >
                                     <span className="text-sm">Filtro - Data</span>
                                     <SlidersHorizontal size={16} className="ml-2" />
@@ -85,7 +86,7 @@ export function History() {
                                             onClick={applyFilter}
                                             className="mt-4 w-full bg-[#081C33] text-white py-2 rounded hover:bg-[#0b284a] transition"
                                         >
-                                            aplicar
+                                            Aplicar
                                         </button>
                                     </div>
                                 )}
