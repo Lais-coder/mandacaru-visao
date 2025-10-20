@@ -6,6 +6,7 @@ import { Login } from './pages/login'
 import { Home } from './pages/home'
 import { History } from './pages/history '
 import { ConfigureBaia } from './pages/configureBaia'
+import { ReportPage } from './pages/report'
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,10 @@ const router = createBrowserRouter([
   {
     path: '/history',
     element: <History />,
+  },
+  {
+    path: '/report',
+    element: <ReportPage />,
   },
 ])
 

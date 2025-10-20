@@ -174,7 +174,7 @@ export function ConfigureBaia() {
                             }}
                             onConfirm={() => {
                                 setShowModal(false);
-                                navigate("/relatorio"); 
+                                navigate("/report"); 
                             }}
                         />
                     </div>
